@@ -1,0 +1,971 @@
+
+
+<!doctype html>
+
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Half Day Route</title>
+
+  <style>
+    :root{
+      --line:#6d8fb0;
+      --lineW:2px;
+      --bg:#ffffff;
+      --panel:#f6f7f9;
+      --muted:#5b6470;
+      --ui:#eef1f5;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      background: var(--panel);
+      color:#111;
+    }
+
+    .page{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .topbar{
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    input[type="text"]{
+      flex: 1 1 320px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #c9cdd3;
+      font-size: 16px;
+    }
+
+    button{
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #c9cdd3;
+      background: #fff;
+      cursor:pointer;
+      font-size: 14px;
+    }
+
+    button:active{ transform: translateY(1px); }
+
+    .tiles-tray{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      padding-top: 4px;
+      min-height: 52px;
+    }
+
+    .tile{
+      background: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 6px;
+      min-width: 110px;
+      min-height: 44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      user-select:none;
+      cursor: grab;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      overflow: hidden;
+      word-break: break-word;
+      line-height: 1.05;
+    }
+
+    .tile:active{ cursor: grabbing; }
+
+    .hint{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .layout-card{
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .title-centre{
+      text-align:center;
+      font-weight: 700;
+      font-size: 18px;
+      margin: 2px 0 12px 0;
+    }
+
+    .card-title{
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+
+    .two-cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+
+    .section{
+      display:grid;
+      gap: 6px;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      padding: 0 2px;
+    }
+
+    .section-head .label{
+      font-weight: 700;
+      color:#111;
+    }
+
+    .kennel-grid{
+      border: var(--lineW) solid var(--line);
+      background:#fff;
+    }
+
+    .row{ display:grid; }
+
+    .box{
+      border: var(--lineW) solid var(--line);
+      min-height: 90px;
+      position: relative;
+      padding: 2px;
+      background:#fff;
+    }
+
+    .box-layout{
+      width:100%;
+      height:100%;
+      display:grid;
+      grid-template-rows: 24px 1fr;
+      gap: 6px;
+      padding: 4px;
+    }
+
+    .box-controls{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 8px;
+    }
+
+    .stop-input{
+      width: 58px;
+      height: 22px;
+      border: 1px solid #c9cdd3;
+      border-radius: 6px;
+      padding: 0 6px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .route-select{
+      height: 22px;
+      border: 1px solid #c9cdd3;
+      border-radius: 6px;
+      padding: 0 6px;
+      font-size: 12px;
+      background: #fff;
+      max-width: 140px;
+    }
+
+    .tile-area{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      justify-content:center;
+      align-items:stretch;
+      padding: 2px;
+      position: relative;
+    }
+
+    .tile-area.one .tile-inbox{
+      width:100%;
+      height:100%;
+    }
+
+    .tile-area.two .tile-inbox{
+      width:100%;
+      height: calc(50% - 3px);
+    }
+
+    .tile-inbox{
+      background:#fff;
+      border:none;
+      border-radius:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      overflow:hidden;
+      padding: 2px 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      word-break: break-word;
+      line-height: 1.05;
+      cursor: grab;
+      user-select:none;
+    }
+
+    .wheel-obstruction{
+      position:absolute;
+      bottom: 4px;
+      width: 44px;
+      height: 26px;
+      background: #ffffff;
+      border: var(--lineW) solid var(--line);
+      border-radius: 9px;
+      pointer-events:none;
+      opacity: 1;
+    }
+
+    .wheel-obstruction.left{ left: 6px; }
+    .wheel-obstruction.right{ right: 6px; }
+
+    .avoid-wheels .tile-area{
+      padding-bottom: 34px;
+    }
+
+    .notes-area{
+      margin-top: 16px;
+      display:grid;
+      gap: 14px;
+    }
+
+    .notes-block{
+      display:grid;
+      gap: 6px;
+    }
+
+    .notes-label{
+      font-weight: 700;
+    }
+
+    textarea{
+      width:100%;
+      min-height: 110px;
+      resize: vertical;
+      border-radius: 10px;
+      border: 1px solid #c9cdd3;
+      padding: 10px 12px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background:#fff;
+    }
+
+    .sv-cabin{
+      display:grid;
+      grid-template-rows: 1fr 1fr;
+    }
+    .sv-cabin .row.top{ grid-template-columns: repeat(3, 1fr); }
+    .sv-cabin .row.bot{ grid-template-columns: repeat(2, 1fr); }
+
+    .sv-back{
+      display:grid;
+      grid-template-rows: 1fr 1fr;
+    }
+    .sv-back .row.top{ grid-template-columns: repeat(3, 1fr); }
+    .sv-back .row.bot{ grid-template-columns: repeat(2, 1fr); }
+
+    .dv-wrap{
+      display:grid;
+      grid-template-columns: 1fr 2.2fr 1fr;
+      gap: 14px;
+      align-items:stretch;
+    }
+
+    .dv-stack{
+      border: var(--lineW) solid var(--line);
+      background:#fff;
+      display:grid;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .dv-centre{
+      border: var(--lineW) solid var(--line);
+      background:#fff;
+      display:grid;
+      grid-template-rows: 1fr 1.35fr;
+    }
+    .dv-centre .row.top{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .dv-centre .row.bot{
+      display:grid;
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 900px){
+      .two-cols{ grid-template-columns: 1fr; }
+      .dv-wrap{ grid-template-columns: 1fr; }
+    }
+
+    /* Temporary boost for landscape PDF capture */
+    .pdf-landscape-boost #printArea{
+      transform: scale(1.12);
+      transform-origin: top left;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="page" id="app">
+    <div class="topbar">
+      <div class="controls">
+        <input id="tileText" type="text" placeholder="Type text, press Enter or click Add Tile" />
+        <button id="addTileBtn" type="button">Add Tile</button>
+        <button id="clearBtn" type="button">Clear All</button>
+        <button id="pdfBtn" type="button">PDF Export</button>
+        <button id="pdfLandscapeBtn" type="button">PDF Export Landscape</button>
+      </div>
+      <div class="tiles-tray" id="tray" aria-label="Tiles tray"></div>
+      <div class="hint">Drag tiles into any kennel box. Up to 2 tiles per box. Tiles move as cut-and-paste. Double-click a tile to edit.</div>
+    </div>
+
+```
+<div class="layout-card" id="printArea">
+  <div class="title-centre">Half Day Route</div>
+
+  <div class="card-title">Small Van SV</div>
+  <div class="two-cols">
+    <div class="section">
+      <div class="section-head"><div class="label">Cabin</div></div>
+      <div class="kennel-grid sv-cabin">
+        <div class="row top">
+          <div class="box" data-cap="2" data-box="sv-cabin-top-1"></div>
+          <div class="box" data-cap="2" data-box="sv-cabin-top-2"></div>
+          <div class="box" data-cap="2" data-box="sv-cabin-top-3"></div>
+        </div>
+        <div class="row bot">
+          <div class="box" data-cap="2" data-box="sv-cabin-bot-1"></div>
+          <div class="box" data-cap="2" data-box="sv-cabin-bot-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div class="label">Back</div></div>
+      <div class="kennel-grid sv-back">
+        <div class="row top">
+          <div class="box" data-cap="2" data-box="sv-back-top-1"></div>
+          <div class="box" data-cap="2" data-box="sv-back-top-2"></div>
+          <div class="box" data-cap="2" data-box="sv-back-top-3"></div>
+        </div>
+        <div class="row bot">
+          <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-1" data-wheels="1"></div>
+          <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-2" data-wheels="1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;" class="card-title">Dispatch Van DV</div>
+  <div class="dv-wrap">
+    <div class="section">
+      <div class="section-head"><div class="label">Left</div></div>
+      <div class="dv-stack">
+        <div class="box" data-cap="2" data-box="dv-left-top"></div>
+        <div class="box" data-cap="2" data-box="dv-left-bot"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div class="label">&nbsp;</div></div>
+      <div class="dv-centre">
+        <div class="row top">
+          <div class="box" data-cap="2" data-box="dv-back-top-1"></div>
+          <div class="box" data-cap="2" data-box="dv-back-top-2"></div>
+          <div class="box" data-cap="2" data-box="dv-back-top-3"></div>
+        </div>
+        <div class="row bot">
+          <div class="box" data-cap="2" data-box="dv-back-bot-xl"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><div class="label">Right</div></div>
+      <div class="dv-stack">
+        <div class="box" data-cap="2" data-box="dv-right-top"></div>
+        <div class="box" data-cap="2" data-box="dv-right-bot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes-area">
+    <div class="notes-block">
+      <div class="notes-label">Sequence and Notes</div>
+      <textarea id="notesText" placeholder=""></textarea>
+    </div>
+
+    <div class="notes-block">
+      <div class="notes-label">Intros</div>
+      <textarea id="introsText" placeholder=""></textarea>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script>
+    (function(){
+      const tray = document.getElementById('tray');
+      const input = document.getElementById('tileText');
+      const addBtn = document.getElementById('addTileBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const pdfBtn = document.getElementById('pdfBtn');
+      const pdfLandscapeBtn = document.getElementById('pdfLandscapeBtn');
+
+      const notesText = document.getElementById('notesText');
+      const introsText = document.getElementById('introsText');
+
+      const STORAGE_KEY = 'half_day_route_v1';
+
+      const ROUTE_OPTIONS = [
+        '',
+        'S2H (shop to house)',
+        'H2S (house to shop)',
+        'D2S (daycare to shop)',
+        'S2S (shop to daycare)',
+        'PU (pick up)',
+        'DO (drop off)'
+      ];
+
+      const state = {
+        tiles: {},
+        placements: {},
+        boxMeta: {},
+        notes: '',
+        intros: ''
+      };
+
+      const uid = () => 't_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+      function save(){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function load(){
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return;
+        try{
+          const data = JSON.parse(raw);
+          if(!data) return;
+          state.tiles = data.tiles || {};
+          state.placements = data.placements || {};
+          state.boxMeta = data.boxMeta || {};
+          state.notes = typeof data.notes === 'string' ? data.notes : '';
+          state.intros = typeof data.intros === 'string' ? data.intros : '';
+        }catch(e){}
+      }
+
+      function clearAll(){
+        state.tiles = {};
+        state.placements = {};
+        state.boxMeta = {};
+        state.notes = '';
+        state.intros = '';
+        localStorage.removeItem(STORAGE_KEY);
+
+        tray.innerHTML = '';
+        document.querySelectorAll('.box').forEach(b => b.innerHTML = '');
+        notesText.value = '';
+        introsText.value = '';
+      }
+
+      function removeTrayTile(tileId){
+        const el = tray.querySelector('.tile[data-tile-id="'+tileId+'"]');
+        if(el) el.remove();
+      }
+
+      function ensureTrayTile(tileId){
+        if(!state.tiles[tileId]) return;
+        const exists = tray.querySelector('.tile[data-tile-id="'+tileId+'"]');
+        if(!exists) createTrayTile(state.tiles[tileId]);
+      }
+
+      function createTrayTile(tile){
+        const el = document.createElement('div');
+        el.className = 'tile';
+        el.draggable = true;
+        el.dataset.tileId = tile.id;
+        el.textContent = tile.text;
+
+        el.addEventListener('dragstart', (ev) => {
+          ev.dataTransfer.setData('text/plain', tile.id);
+          ev.dataTransfer.effectAllowed = 'move';
+        });
+
+        el.addEventListener('dblclick', () => editTile(tile.id));
+
+        tray.appendChild(el);
+        fitTextInNode(el);
+      }
+
+      function createInboxTile(tileId){
+        const tile = state.tiles[tileId];
+        const el = document.createElement('div');
+        el.className = 'tile-inbox';
+        el.draggable = true;
+        el.dataset.tileId = tile.id;
+        el.textContent = tile.text;
+
+        el.addEventListener('dragstart', (ev) => {
+          ev.dataTransfer.setData('text/plain', tile.id);
+          ev.dataTransfer.effectAllowed = 'move';
+        });
+
+        el.addEventListener('dblclick', () => editTile(tile.id));
+
+        fitTextInNode(el);
+        return el;
+      }
+
+      function editTile(tileId){
+        const tile = state.tiles[tileId];
+        if(!tile) return;
+
+        const next = prompt('Edit tile text:', tile.text);
+        if(next === null) return;
+
+        const trimmed = (next || '').trim();
+        if(!trimmed) return;
+
+        state.tiles[tileId].text = trimmed;
+
+        tray.querySelectorAll('.tile[data-tile-id="'+tileId+'"]').forEach(n => {
+          n.textContent = trimmed;
+          fitTextInNode(n);
+        });
+
+        document.querySelectorAll('.tile-inbox[data-tile-id="'+tileId+'"]').forEach(n => {
+          n.textContent = trimmed;
+          fitTextInNode(n);
+        });
+
+        save();
+      }
+
+      function ensureBoxMeta(boxId){
+        if(!state.boxMeta[boxId]){
+          state.boxMeta[boxId] = { stop: '', route: '' };
+        }
+        return state.boxMeta[boxId];
+      }
+
+      function buildBoxUI(box){
+        const boxId = box.dataset.box;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'box-layout';
+
+        const controls = document.createElement('div');
+        controls.className = 'box-controls';
+
+        const stop = document.createElement('input');
+        stop.className = 'stop-input';
+        stop.type = 'text';
+        stop.inputMode = 'numeric';
+        stop.placeholder = '';
+        stop.setAttribute('aria-label', 'Stop number');
+
+        const route = document.createElement('select');
+        route.className = 'route-select';
+        route.setAttribute('aria-label', 'Route option');
+
+        ROUTE_OPTIONS.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v === '' ? '' : v;
+          route.appendChild(opt);
+        });
+
+        const meta = ensureBoxMeta(boxId);
+        stop.value = meta.stop || '';
+        route.value = meta.route || '';
+
+        stop.addEventListener('input', () => {
+          const cleaned = stop.value.replace(/[^\d]/g, '').slice(0, 4);
+          if(stop.value !== cleaned) stop.value = cleaned;
+          ensureBoxMeta(boxId).stop = stop.value;
+          save();
+        });
+
+        route.addEventListener('change', () => {
+          ensureBoxMeta(boxId).route = route.value;
+          save();
+        });
+
+        controls.appendChild(stop);
+        controls.appendChild(route);
+
+        const tileArea = document.createElement('div');
+        tileArea.className = 'tile-area one';
+        tileArea.dataset.boxId = boxId;
+
+        if(box.dataset.wheels === '1'){
+          const wl = document.createElement('div');
+          wl.className = 'wheel-obstruction left';
+          const wr = document.createElement('div');
+          wr.className = 'wheel-obstruction right';
+          tileArea.appendChild(wl);
+          tileArea.appendChild(wr);
+        }
+
+        wrap.appendChild(controls);
+        wrap.appendChild(tileArea);
+
+        box.appendChild(wrap);
+
+        return tileArea;
+      }
+
+      function getTileArea(box){
+        const existing = box.querySelector('.tile-area');
+        if(existing) return existing;
+        return buildBoxUI(box);
+      }
+
+      function setTileAreaMode(tileArea, count){
+        tileArea.classList.remove('one','two');
+        tileArea.classList.add(count === 2 ? 'two' : 'one');
+      }
+
+      function renderBox(boxId){
+        const box = document.querySelector('.box[data-box="'+boxId+'"]');
+        if(!box) return;
+
+        const tileArea = getTileArea(box);
+
+        tileArea.querySelectorAll('.tile-inbox').forEach(n => n.remove());
+
+        const list = (state.placements[boxId] || []).filter(id => state.tiles[id]).slice(0,2);
+        state.placements[boxId] = list;
+
+        setTileAreaMode(tileArea, list.length || 1);
+
+        list.forEach(id => {
+          const t = createInboxTile(id);
+          tileArea.appendChild(t);
+        });
+
+        refitTileArea(tileArea);
+      }
+
+      function removeTileFromAllBoxes(tileId){
+        let wasRemoved = false;
+
+        for(const boxId of Object.keys(state.placements)){
+          const arr = state.placements[boxId] || [];
+          const next = arr.filter(id => id !== tileId);
+
+          if(next.length !== arr.length){
+            wasRemoved = true;
+
+            if(next.length === 0){
+              delete state.placements[boxId];
+            }else{
+              state.placements[boxId] = next.slice(0,2);
+            }
+
+            renderBox(boxId);
+          }
+        }
+
+        if(!wasRemoved) return;
+
+        const stillPlaced = Object.values(state.placements).some(arr => (arr || []).includes(tileId));
+        if(!stillPlaced){
+          ensureTrayTile(tileId);
+        }
+      }
+
+      function placeTileInBox(tileId, boxId){
+        const box = document.querySelector('.box[data-box="'+boxId+'"]');
+        if(!box) return;
+
+        const cap = Number(box.dataset.cap || '2');
+        const list = state.placements[boxId] ? [...state.placements[boxId]] : [];
+
+        if(list.includes(tileId)) return;
+        if(list.length >= cap) return;
+
+        removeTileFromAllBoxes(tileId);
+
+        list.push(tileId);
+        state.placements[boxId] = list.slice(0,2);
+
+        renderBox(boxId);
+
+        removeTrayTile(tileId);
+
+        save();
+      }
+
+      function addTileFromInput(){
+        const text = (input.value || '').trim();
+        if(!text) return;
+        const id = uid();
+        state.tiles[id] = { id, text };
+        createTrayTile(state.tiles[id]);
+        input.value = '';
+        save();
+      }
+
+      function wireDropTargets(){
+        document.querySelectorAll('.box').forEach(box => {
+          box.addEventListener('dragover', (ev) => {
+            ev.preventDefault();
+            ev.dataTransfer.dropEffect = 'move';
+          });
+
+          box.addEventListener('drop', (ev) => {
+            ev.preventDefault();
+            const tileId = ev.dataTransfer.getData('text/plain');
+            if(!tileId || !state.tiles[tileId]) return;
+            placeTileInBox(tileId, box.dataset.box);
+          });
+        });
+
+        tray.addEventListener('dragover', (ev) => {
+          ev.preventDefault();
+          ev.dataTransfer.dropEffect = 'move';
+        });
+
+        tray.addEventListener('drop', (ev) => {
+          ev.preventDefault();
+          const tileId = ev.dataTransfer.getData('text/plain');
+          if(!tileId || !state.tiles[tileId]) return;
+
+          removeTileFromAllBoxes(tileId);
+          ensureTrayTile(tileId);
+          refitAll();
+          save();
+        });
+      }
+
+      function fitTextInNode(node){
+        if(!node) return;
+
+        const targetW = Math.max(10, node.clientWidth - 6);
+        const targetH = Math.max(10, node.clientHeight - 6);
+
+        let lo = 10, hi = 220, best = 14;
+
+        const fits = (size) => {
+          node.style.fontSize = size + 'px';
+          return (node.scrollWidth <= targetW) && (node.scrollHeight <= targetH);
+        };
+
+        while(lo <= hi){
+          const mid = Math.floor((lo + hi) / 2);
+          if(fits(mid)){
+            best = mid;
+            lo = mid + 1;
+          }else{
+            hi = mid - 1;
+          }
+        }
+
+        node.style.fontSize = best + 'px';
+      }
+
+      function refitTileArea(tileArea){
+        if(!tileArea) return;
+        tileArea.querySelectorAll('.tile-inbox').forEach(n => fitTextInNode(n));
+      }
+
+      function refitAll(){
+        document.querySelectorAll('.tile-inbox').forEach(n => fitTextInNode(n));
+        tray.querySelectorAll('.tile').forEach(n => fitTextInNode(n));
+      }
+
+      function hydrate(){
+        tray.innerHTML = '';
+
+        document.querySelectorAll('.box').forEach(b => {
+          b.innerHTML = '';
+          buildBoxUI(b);
+        });
+
+        notesText.value = state.notes || '';
+        introsText.value = state.intros || '';
+
+        const placedIds = new Set();
+        Object.values(state.placements).forEach(arr => (arr || []).forEach(id => placedIds.add(id)));
+
+        for(const tileId of Object.keys(state.tiles)){
+          if(!placedIds.has(tileId)){
+            createTrayTile(state.tiles[tileId]);
+          }
+        }
+
+        Object.keys(state.placements).forEach(renderBox);
+
+        save();
+      }
+
+      async function exportPDFWithOptions(opts){
+        const area = document.getElementById('printArea');
+        const orientation = (opts && opts.orientation) ? opts.orientation : 'portrait';
+        const filename = (opts && opts.filename) ? opts.filename : 'half-day-route.pdf';
+        const boost = !!(opts && opts.boost);
+
+        const root = document.documentElement;
+
+        if(boost){
+          root.classList.add('pdf-landscape-boost');
+          refitAll();
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        }
+
+        try{
+          const scale = Math.min(2, window.devicePixelRatio || 1);
+
+          const canvas = await html2canvas(area, {
+            backgroundColor: '#ffffff',
+            scale,
+            useCORS: true
+          });
+
+          const imgData = canvas.toDataURL('image/png');
+          const { jsPDF } = window.jspdf;
+
+          const pdf = new jsPDF({
+            orientation,
+            unit: 'pt',
+            format: 'a4'
+          });
+
+          const pageW = pdf.internal.pageSize.getWidth();
+          const pageH = pdf.internal.pageSize.getHeight();
+
+          const imgW = canvas.width;
+          const imgH = canvas.height;
+
+          const ratio = Math.min(pageW / imgW, pageH / imgH);
+
+          const renderW = imgW * ratio;
+          const renderH = imgH * ratio;
+
+          const x = (pageW - renderW) / 2;
+          const y = (pageH - renderH) / 2;
+
+          pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+          pdf.save(filename);
+        }finally{
+          if(boost){
+            root.classList.remove('pdf-landscape-boost');
+            refitAll();
+          }
+        }
+      }
+
+      async function exportPDF(){
+        return exportPDFWithOptions({
+          orientation: 'portrait',
+          filename: 'half-day-route.pdf',
+          boost: false
+        });
+      }
+
+      async function exportPDFLandscape(){
+        return exportPDFWithOptions({
+          orientation: 'landscape',
+          filename: 'half-day-route-landscape.pdf',
+          boost: true
+        });
+      }
+
+      function wireNotes(){
+        const saveNow = () => {
+          state.notes = notesText.value || '';
+          state.intros = introsText.value || '';
+          save();
+        };
+
+        notesText.addEventListener('input', () => {
+          clearTimeout(window.__notesTimer);
+          window.__notesTimer = setTimeout(saveNow, 120);
+        });
+
+        introsText.addEventListener('input', () => {
+          clearTimeout(window.__introsTimer);
+          window.__introsTimer = setTimeout(saveNow, 120);
+        });
+      }
+
+      addBtn.addEventListener('click', addTileFromInput);
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') addTileFromInput();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if(confirm('Clear all tiles, placements, stop numbers, route options, and text?')){
+          clearAll();
+        }
+      });
+
+      pdfBtn.addEventListener('click', exportPDF);
+      pdfLandscapeBtn.addEventListener('click', exportPDFLandscape);
+
+      window.addEventListener('resize', () => {
+        clearTimeout(window.__fitTimer);
+        window.__fitTimer = setTimeout(refitAll, 60);
+      });
+
+      const ro = new ResizeObserver(() => refitAll());
+
+      load();
+      wireDropTargets();
+      wireNotes();
+      hydrate();
+
+      document.querySelectorAll('.box').forEach(b => ro.observe(b));
+      ro.observe(tray);
+
+      refitAll();
+    })();
+  </script>
+
+</body>
+</html>
