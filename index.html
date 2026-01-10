@@ -1,473 +1,718 @@
-
-
 <!doctype html>
-
 <html lang="en-GB">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Half Day Route</title>
 
   <style>
-    :root{
-      --line:#6d8fb0;
-      --lineW:2px;
-      --bg:#ffffff;
-      --panel:#f6f7f9;
-      --muted:#5b6470;
-      --ui:#eef1f5;
+    :root {
+      --line: #6d8fb0;
+      --lineW: 2px;
+      --bg: #ffffff;
+      --panel: #f6f7f9;
+      --muted: #5b6470;
+      --ui: #eef1f5;
+      --accent: #2c5282;
+      --danger: #e53e3e;
+      --success: #2f855a;
     }
 
-    *{ box-sizing:border-box; }
+    * { box-sizing: border-box; }
 
-    body{
-      margin:0;
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
       font-family: Arial, sans-serif;
       background: var(--panel);
-      color:#111;
+      color: #111;
+      touch-action: pan-y;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    .page{
+    .page {
+      width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 12px;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .topbar{
+    .topbar {
       background: var(--bg);
       border-radius: 10px;
-      padding: 14px;
+      padding: 12px;
       display: grid;
       gap: 10px;
     }
 
-    .controls{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
-    input[type="text"]{
-      flex: 1 1 320px;
+    input[type="text"] {
+      flex: 1 1 150px;
+      min-width: 0;
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid #c9cdd3;
       font-size: 16px;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
-    button{
+    button {
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid #c9cdd3;
       background: #fff;
-      cursor:pointer;
-      font-size: 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      white-space: nowrap;
     }
 
-    button:active{ transform: translateY(1px); }
+    button:active { transform: translateY(1px); }
 
-    .tiles-tray{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-      padding-top: 4px;
-      min-height: 52px;
+    .btn-pdf { background: var(--success); color: #fff; border: none; }
+    .btn-danger { background: #fed7d7; color: #c53030; border: 1px solid #feb2b2; }
+
+    .tray-area {
+      display: flex;
+      gap: 8px;
+      min-height: 60px;
     }
 
-    .tile{
+    .tiles-tray {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-content: flex-start;
+      padding: 8px;
+      min-height: 50px;
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    #bin {
+      width: 50px;
+      min-width: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fed7d7;
+      border: 2px solid #feb2b2;
+      border-radius: 8px;
+      color: #c53030;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .tile {
       background: #fff;
-      border: none;
+      border: 1px solid #ddd;
       border-radius: 6px;
       padding: 4px 6px;
-      min-width: 110px;
-      min-height: 44px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      user-select:none;
+      min-width: 80px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       cursor: grab;
       box-shadow: 0 1px 2px rgba(0,0,0,0.12);
       overflow: hidden;
       word-break: break-word;
       line-height: 1.05;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      z-index: 100;
     }
 
-    .tile:active{ cursor: grabbing; }
+    .tile:active { cursor: grabbing; }
 
-    .hint{
-      font-size: 12px;
+    .hint {
+      font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
     }
 
-    .layout-card{
+    .layout-card {
       background: var(--bg);
       border-radius: 10px;
-      padding: 14px;
+      padding: 12px;
+      width: 100%;
     }
 
-    .title-centre{
-      text-align:center;
+    .title-centre {
+      text-align: center;
       font-weight: 700;
-      font-size: 18px;
-      margin: 2px 0 12px 0;
+      font-size: 16px;
+      margin: 2px 0 10px 0;
     }
 
-    .card-title{
-      font-size: 18px;
+    .card-title {
+      font-size: 15px;
       font-weight: 700;
-      margin: 0 0 10px 0;
+      margin: 0 0 8px 0;
     }
 
-    .two-cols{
-      display:grid;
+    .van-section {
+      margin-bottom: 16px;
+    }
+
+    .two-cols {
+      display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      align-items:start;
+      gap: 10px;
+      align-items: start;
     }
 
-    .section{
-      display:grid;
-      gap: 6px;
+    .section {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
     }
 
-    .section-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       padding: 0 2px;
     }
 
-    .section-head .label{
+    .section-head .label {
       font-weight: 700;
-      color:#111;
+      font-size: 13px;
+      color: #111;
     }
 
-    .kennel-grid{
+    .kennel-grid {
       border: var(--lineW) solid var(--line);
-      background:#fff;
+      background: #fff;
+      width: 100%;
     }
 
-    .row{ display:grid; }
+    .row { 
+      display: grid; 
+      width: 100%;
+    }
 
-    .box{
+    .box {
       border: var(--lineW) solid var(--line);
-      min-height: 90px;
+      min-height: 75px;
       position: relative;
       padding: 2px;
-      background:#fff;
-    }
-
-    .box-layout{
-      width:100%;
-      height:100%;
-      display:grid;
-      grid-template-rows: 24px 1fr;
-      gap: 6px;
-      padding: 4px;
-    }
-
-    .box-controls{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 8px;
-    }
-
-    .stop-input{
-      width: 58px;
-      height: 22px;
-      border: 1px solid #c9cdd3;
-      border-radius: 6px;
-      padding: 0 6px;
-      font-size: 12px;
       background: #fff;
     }
 
-    .route-select{
-      height: 22px;
-      border: 1px solid #c9cdd3;
-      border-radius: 6px;
-      padding: 0 6px;
-      font-size: 12px;
-      background: #fff;
-      max-width: 140px;
+    .box-layout {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 22px 1fr;
+      gap: 4px;
+      padding: 3px;
     }
 
-    .tile-area{
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      gap: 6px;
-      justify-content:center;
-      align-items:stretch;
+    .box-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .stop-input {
+      width: 36px;
+      min-width: 36px;
+      height: 20px;
+      border: 1px solid #c9cdd3;
+      border-radius: 4px;
+      padding: 0 4px;
+      font-size: 11px;
+      background: #fff;
+      -webkit-user-select: text;
+      user-select: text;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+
+    .route-select {
+      height: 20px;
+      border: 1px solid #c9cdd3;
+      border-radius: 4px;
+      padding: 0 2px;
+      font-size: 10px;
+      background: #fff;
+      min-width: 0;
+      flex: 1;
+      touch-action: manipulation;
+    }
+
+    .tile-area {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center;
+      align-items: stretch;
       padding: 2px;
       position: relative;
+      min-height: 40px;
     }
 
-    .tile-area.one .tile-inbox{
-      width:100%;
-      height:100%;
+    .tile-area.one .tile-inbox {
+      width: 100%;
+      height: 100%;
     }
 
-    .tile-area.two .tile-inbox{
-      width:100%;
-      height: calc(50% - 3px);
+    .tile-area.two .tile-inbox {
+      width: 100%;
+      height: calc(50% - 2px);
     }
 
-    .tile-inbox{
-      background:#fff;
-      border:none;
-      border-radius:6px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      overflow:hidden;
-      padding: 2px 4px;
+    .tile-inbox {
+      background: #fff;
+      border: none;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 2px 3px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.12);
       word-break: break-word;
       line-height: 1.05;
       cursor: grab;
-      user-select:none;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      z-index: 100;
     }
 
-    .wheel-obstruction{
-      position:absolute;
-      bottom: 4px;
-      width: 44px;
-      height: 26px;
+    .wheel-obstruction {
+      position: absolute;
+      bottom: 3px;
+      width: 32px;
+      height: 20px;
       background: #ffffff;
       border: var(--lineW) solid var(--line);
-      border-radius: 9px;
-      pointer-events:none;
-      opacity: 1;
+      border-radius: 8px;
+      pointer-events: none;
     }
 
-    .wheel-obstruction.left{ left: 6px; }
-    .wheel-obstruction.right{ right: 6px; }
+    .wheel-obstruction.left { left: 4px; }
+    .wheel-obstruction.right { right: 4px; }
 
-    .avoid-wheels .tile-area{
-      padding-bottom: 34px;
+    .avoid-wheels .tile-area {
+      padding-bottom: 26px;
     }
 
-    .notes-area{
-      margin-top: 16px;
-      display:grid;
-      gap: 14px;
+    .notes-area {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
     }
 
-    .notes-block{
-      display:grid;
-      gap: 6px;
+    .notes-block {
+      display: grid;
+      gap: 4px;
     }
 
-    .notes-label{
+    .notes-label {
       font-weight: 700;
+      font-size: 14px;
     }
 
-    textarea{
-      width:100%;
-      min-height: 110px;
+    textarea {
+      width: 100%;
+      min-height: 90px;
       resize: vertical;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid #c9cdd3;
-      padding: 10px 12px;
+      padding: 8px 10px;
       font-family: Arial, sans-serif;
       font-size: 14px;
-      background:#fff;
+      background: #fff;
+      -webkit-user-select: text;
+      user-select: text;
+      touch-action: manipulation;
     }
 
-    .sv-cabin{
-      display:grid;
+    /* Van grid layouts */
+    .sv-cabin, .sv-back {
+      display: grid;
       grid-template-rows: 1fr 1fr;
     }
-    .sv-cabin .row.top{ grid-template-columns: repeat(3, 1fr); }
-    .sv-cabin .row.bot{ grid-template-columns: repeat(2, 1fr); }
+    .sv-cabin .row.top, .sv-back .row.top { grid-template-columns: repeat(3, 1fr); }
+    .sv-cabin .row.bot, .sv-back .row.bot { grid-template-columns: repeat(2, 1fr); }
 
-    .sv-back{
-      display:grid;
-      grid-template-rows: 1fr 1fr;
-    }
-    .sv-back .row.top{ grid-template-columns: repeat(3, 1fr); }
-    .sv-back .row.bot{ grid-template-columns: repeat(2, 1fr); }
-
-    .dv-wrap{
-      display:grid;
+    .dv-wrap {
+      display: grid;
       grid-template-columns: 1fr 2.2fr 1fr;
-      gap: 14px;
-      align-items:stretch;
+      gap: 10px;
+      align-items: stretch;
     }
 
-    .dv-stack{
+    .dv-stack {
       border: var(--lineW) solid var(--line);
-      background:#fff;
-      display:grid;
+      background: #fff;
+      display: grid;
       grid-template-rows: 1fr 1fr;
     }
 
-    .dv-centre{
+    .dv-centre {
       border: var(--lineW) solid var(--line);
-      background:#fff;
-      display:grid;
+      background: #fff;
+      display: grid;
       grid-template-rows: 1fr 1.35fr;
     }
-    .dv-centre .row.top{
-      display:grid;
+
+    .dv-centre .row.top {
+      display: grid;
       grid-template-columns: repeat(3, 1fr);
     }
-    .dv-centre .row.bot{
-      display:grid;
+
+    .dv-centre .row.bot {
+      display: grid;
       grid-template-columns: 1fr;
     }
 
-    @media (max-width: 900px){
-      .two-cols{ grid-template-columns: 1fr; }
-      .dv-wrap{ grid-template-columns: 1fr; }
+    /* Drag clone styling */
+    .is-dragging {
+      position: fixed;
+      z-index: 9999 !important;
+      pointer-events: none;
+      opacity: 0.9;
+      transform: scale(1.08);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 2px solid var(--accent);
     }
 
-    /* Temporary boost for landscape PDF capture */
-    .pdf-landscape-boost #printArea{
+    /* Drop target highlight */
+    .drop-highlight {
+      background: #ebf8ff !important;
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    /* ============ RESPONSIVE BREAKPOINTS ============ */
+
+    /* Tablet and below - stack van sections */
+    @media (max-width: 768px) {
+      .two-cols { 
+        grid-template-columns: 1fr; 
+        gap: 14px;
+      }
+      
+      .dv-wrap { 
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      
+      .dv-wrap .section:nth-child(2) {
+        grid-column: 1 / -1;
+        order: -1;
+      }
+      
+      .box {
+        min-height: 70px;
+      }
+      
+      .card-title {
+        font-size: 14px;
+      }
+    }
+
+    /* Mobile portrait - more compact */
+    @media (max-width: 500px) {
+      .page {
+        padding: 8px;
+        gap: 8px;
+      }
+      
+      .topbar {
+        padding: 10px;
+        gap: 8px;
+      }
+      
+      .controls {
+        gap: 6px;
+      }
+      
+      .controls input[type="text"] {
+        flex: 1 1 100%;
+        font-size: 16px;
+      }
+      
+      .controls button {
+        flex: 1;
+        min-width: calc(50% - 4px);
+        padding: 10px 8px;
+        font-size: 12px;
+      }
+      
+      .dv-wrap {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      
+      .dv-wrap .section:nth-child(2) {
+        order: 0;
+      }
+      
+      .box {
+        min-height: 65px;
+      }
+      
+      .box-layout {
+        grid-template-rows: 20px 1fr;
+        gap: 3px;
+        padding: 2px;
+      }
+      
+      .stop-input {
+        width: 32px;
+        min-width: 32px;
+        height: 18px;
+        font-size: 10px;
+      }
+      
+      .route-select {
+        height: 18px;
+        font-size: 9px;
+      }
+      
+      .tile {
+        min-width: 70px;
+        min-height: 34px;
+      }
+      
+      .title-centre {
+        font-size: 15px;
+      }
+      
+      .section-head .label {
+        font-size: 12px;
+      }
+      
+      #bin {
+        width: 44px;
+        min-width: 44px;
+        font-size: 20px;
+      }
+      
+      .wheel-obstruction {
+        width: 26px;
+        height: 16px;
+        bottom: 2px;
+      }
+      
+      .wheel-obstruction.left { left: 3px; }
+      .wheel-obstruction.right { right: 3px; }
+      
+      .avoid-wheels .tile-area {
+        padding-bottom: 22px;
+      }
+    }
+
+    /* Very small screens */
+    @media (max-width: 360px) {
+      .sv-cabin .row.top, .sv-back .row.top { 
+        grid-template-columns: repeat(3, 1fr); 
+      }
+      
+      .box {
+        min-height: 60px;
+      }
+      
+      .route-select {
+        font-size: 8px;
+      }
+    }
+
+    /* Landscape phone */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .two-cols {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .dv-wrap {
+        grid-template-columns: 1fr 2fr 1fr;
+      }
+      
+      .dv-wrap .section:nth-child(2) {
+        order: 0;
+        grid-column: auto;
+      }
+      
+      .box {
+        min-height: 60px;
+      }
+      
+      .notes-area {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      textarea {
+        min-height: 70px;
+      }
+    }
+
+    /* PDF export boost */
+    .pdf-landscape-boost #printArea {
       transform: scale(1.12);
       transform-origin: top left;
     }
   </style>
-
 </head>
 
 <body>
   <div class="page" id="app">
     <div class="topbar">
       <div class="controls">
-        <input id="tileText" type="text" placeholder="Type text, press Enter or click Add Tile" />
-        <button id="addTileBtn" type="button">Add Tile</button>
-        <button id="clearBtn" type="button">Clear All</button>
-        <button id="pdfBtn" type="button">PDF Export</button>
-        <button id="pdfLandscapeBtn" type="button">PDF Export Landscape</button>
+        <input id="tileText" type="text" placeholder="Dog name..." />
+        <button id="addTileBtn" type="button">Add Dog</button>
+        <button id="clearBtn" class="btn-danger" type="button">Clear All</button>
+        <button id="pdfBtn" class="btn-pdf" type="button">PDF</button>
+        <button id="pdfLandscapeBtn" class="btn-pdf" type="button">PDF Land.</button>
       </div>
-      <div class="tiles-tray" id="tray" aria-label="Tiles tray"></div>
-      <div class="hint">Drag tiles into any kennel box. Up to 2 tiles per box. Tiles move as cut-and-paste. Double-click a tile to edit.</div>
+      <div class="tray-area">
+        <div class="tiles-tray" id="tray" aria-label="Tiles tray"></div>
+        <div id="bin">🗑</div>
+      </div>
+      <div class="hint">Drag tiles into boxes. Double-tap to edit. Drag to bin to delete.</div>
     </div>
 
-```
-<div class="layout-card" id="printArea">
-  <div class="title-centre">Half Day Route</div>
+    <div class="layout-card" id="printArea">
+      <div class="title-centre">Half Day Route</div>
 
-  <div class="card-title">Small Van SV</div>
-  <div class="two-cols">
-    <div class="section">
-      <div class="section-head"><div class="label">Cabin</div></div>
-      <div class="kennel-grid sv-cabin">
-        <div class="row top">
-          <div class="box" data-cap="2" data-box="sv-cabin-top-1"></div>
-          <div class="box" data-cap="2" data-box="sv-cabin-top-2"></div>
-          <div class="box" data-cap="2" data-box="sv-cabin-top-3"></div>
-        </div>
-        <div class="row bot">
-          <div class="box" data-cap="2" data-box="sv-cabin-bot-1"></div>
-          <div class="box" data-cap="2" data-box="sv-cabin-bot-2"></div>
-        </div>
-      </div>
-    </div>
+      <div class="van-section">
+        <div class="card-title">Small Van SV</div>
+        <div class="two-cols">
+          <div class="section">
+            <div class="section-head"><div class="label">Cabin</div></div>
+            <div class="kennel-grid sv-cabin">
+              <div class="row top">
+                <div class="box" data-cap="2" data-box="sv-cabin-top-1"></div>
+                <div class="box" data-cap="2" data-box="sv-cabin-top-2"></div>
+                <div class="box" data-cap="2" data-box="sv-cabin-top-3"></div>
+              </div>
+              <div class="row bot">
+                <div class="box" data-cap="2" data-box="sv-cabin-bot-1"></div>
+                <div class="box" data-cap="2" data-box="sv-cabin-bot-2"></div>
+              </div>
+            </div>
+          </div>
 
-    <div class="section">
-      <div class="section-head"><div class="label">Back</div></div>
-      <div class="kennel-grid sv-back">
-        <div class="row top">
-          <div class="box" data-cap="2" data-box="sv-back-top-1"></div>
-          <div class="box" data-cap="2" data-box="sv-back-top-2"></div>
-          <div class="box" data-cap="2" data-box="sv-back-top-3"></div>
-        </div>
-        <div class="row bot">
-          <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-1" data-wheels="1"></div>
-          <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-2" data-wheels="1"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div style="margin-top:14px;" class="card-title">Dispatch Van DV</div>
-  <div class="dv-wrap">
-    <div class="section">
-      <div class="section-head"><div class="label">Left</div></div>
-      <div class="dv-stack">
-        <div class="box" data-cap="2" data-box="dv-left-top"></div>
-        <div class="box" data-cap="2" data-box="dv-left-bot"></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-head"><div class="label">&nbsp;</div></div>
-      <div class="dv-centre">
-        <div class="row top">
-          <div class="box" data-cap="2" data-box="dv-back-top-1"></div>
-          <div class="box" data-cap="2" data-box="dv-back-top-2"></div>
-          <div class="box" data-cap="2" data-box="dv-back-top-3"></div>
-        </div>
-        <div class="row bot">
-          <div class="box" data-cap="2" data-box="dv-back-bot-xl"></div>
+          <div class="section">
+            <div class="section-head"><div class="label">Back</div></div>
+            <div class="kennel-grid sv-back">
+              <div class="row top">
+                <div class="box" data-cap="2" data-box="sv-back-top-1"></div>
+                <div class="box" data-cap="2" data-box="sv-back-top-2"></div>
+                <div class="box" data-cap="2" data-box="sv-back-top-3"></div>
+              </div>
+              <div class="row bot">
+                <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-1" data-wheels="1"></div>
+                <div class="box avoid-wheels" data-cap="2" data-box="sv-back-bot-2" data-wheels="1"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="section">
-      <div class="section-head"><div class="label">Right</div></div>
-      <div class="dv-stack">
-        <div class="box" data-cap="2" data-box="dv-right-top"></div>
-        <div class="box" data-cap="2" data-box="dv-right-bot"></div>
+      <div class="van-section">
+        <div class="card-title">Dispatch Van DV</div>
+        <div class="dv-wrap">
+          <div class="section">
+            <div class="section-head"><div class="label">Left</div></div>
+            <div class="dv-stack">
+              <div class="box" data-cap="2" data-box="dv-left-top"></div>
+              <div class="box" data-cap="2" data-box="dv-left-bot"></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><div class="label">Centre</div></div>
+            <div class="dv-centre">
+              <div class="row top">
+                <div class="box" data-cap="2" data-box="dv-back-top-1"></div>
+                <div class="box" data-cap="2" data-box="dv-back-top-2"></div>
+                <div class="box" data-cap="2" data-box="dv-back-top-3"></div>
+              </div>
+              <div class="row bot">
+                <div class="box" data-cap="2" data-box="dv-back-bot-xl"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><div class="label">Right</div></div>
+            <div class="dv-stack">
+              <div class="box" data-cap="2" data-box="dv-right-top"></div>
+              <div class="box" data-cap="2" data-box="dv-right-bot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes-area">
+        <div class="notes-block">
+          <div class="notes-label">Sequence and Notes</div>
+          <textarea id="notesText" placeholder=""></textarea>
+        </div>
+
+        <div class="notes-block">
+          <div class="notes-label">Intros</div>
+          <textarea id="introsText" placeholder=""></textarea>
+        </div>
       </div>
     </div>
-  </div>
-
-  <div class="notes-area">
-    <div class="notes-block">
-      <div class="notes-label">Sequence and Notes</div>
-      <textarea id="notesText" placeholder=""></textarea>
-    </div>
-
-    <div class="notes-block">
-      <div class="notes-label">Intros</div>
-      <textarea id="introsText" placeholder=""></textarea>
-    </div>
-  </div>
-</div>
-```
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
     (function(){
       const tray = document.getElementById('tray');
+      const bin = document.getElementById('bin');
       const input = document.getElementById('tileText');
       const addBtn = document.getElementById('addTileBtn');
       const clearBtn = document.getElementById('clearBtn');
       const pdfBtn = document.getElementById('pdfBtn');
       const pdfLandscapeBtn = document.getElementById('pdfLandscapeBtn');
-
       const notesText = document.getElementById('notesText');
       const introsText = document.getElementById('introsText');
 
-      const STORAGE_KEY = 'half_day_route_v1';
+      const STORAGE_KEY = 'half_day_route_v3';
 
       const ROUTE_OPTIONS = [
         '',
-        'S2H (shop to house)',
-        'H2S (house to shop)',
-        'D2S (daycare to shop)',
-        'S2S (shop to daycare)',
-        'PU (pick up)',
-        'DO (drop off)'
+        'S2H',
+        'H2S',
+        'D2S',
+        'S2S',
+        'PU',
+        'DO'
       ];
 
       const state = {
@@ -478,122 +723,203 @@
         intros: ''
       };
 
+      // Drag state
+      let activeClone = null;
+      let dragId = null;
+      let startX = 0;
+      let startY = 0;
+      let isDragging = false;
+      let lastTapTime = 0;
+
       const uid = () => 't_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
-      function save(){
+      function save() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
 
-      function load(){
+      function load() {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return;
-        try{
+        if (!raw) return;
+        try {
           const data = JSON.parse(raw);
-          if(!data) return;
+          if (!data) return;
           state.tiles = data.tiles || {};
           state.placements = data.placements || {};
           state.boxMeta = data.boxMeta || {};
           state.notes = typeof data.notes === 'string' ? data.notes : '';
           state.intros = typeof data.intros === 'string' ? data.intros : '';
-        }catch(e){}
+        } catch(e) {}
       }
 
-      function clearAll(){
+      function clearAll() {
         state.tiles = {};
         state.placements = {};
         state.boxMeta = {};
         state.notes = '';
         state.intros = '';
         localStorage.removeItem(STORAGE_KEY);
-
-        tray.innerHTML = '';
-        document.querySelectorAll('.box').forEach(b => b.innerHTML = '');
-        notesText.value = '';
-        introsText.value = '';
+        hydrate();
       }
 
-      function removeTrayTile(tileId){
-        const el = tray.querySelector('.tile[data-tile-id="'+tileId+'"]');
-        if(el) el.remove();
-      }
-
-      function ensureTrayTile(tileId){
-        if(!state.tiles[tileId]) return;
-        const exists = tray.querySelector('.tile[data-tile-id="'+tileId+'"]');
-        if(!exists) createTrayTile(state.tiles[tileId]);
-      }
-
-      function createTrayTile(tile){
-        const el = document.createElement('div');
-        el.className = 'tile';
-        el.draggable = true;
-        el.dataset.tileId = tile.id;
-        el.textContent = tile.text;
-
-        el.addEventListener('dragstart', (ev) => {
-          ev.dataTransfer.setData('text/plain', tile.id);
-          ev.dataTransfer.effectAllowed = 'move';
-        });
-
-        el.addEventListener('dblclick', () => editTile(tile.id));
-
-        tray.appendChild(el);
-        fitTextInNode(el);
-      }
-
-      function createInboxTile(tileId){
-        const tile = state.tiles[tileId];
-        const el = document.createElement('div');
-        el.className = 'tile-inbox';
-        el.draggable = true;
-        el.dataset.tileId = tile.id;
-        el.textContent = tile.text;
-
-        el.addEventListener('dragstart', (ev) => {
-          ev.dataTransfer.setData('text/plain', tile.id);
-          ev.dataTransfer.effectAllowed = 'move';
-        });
-
-        el.addEventListener('dblclick', () => editTile(tile.id));
-
-        fitTextInNode(el);
-        return el;
-      }
-
-      function editTile(tileId){
-        const tile = state.tiles[tileId];
-        if(!tile) return;
-
-        const next = prompt('Edit tile text:', tile.text);
-        if(next === null) return;
-
-        const trimmed = (next || '').trim();
-        if(!trimmed) return;
-
-        state.tiles[tileId].text = trimmed;
-
-        tray.querySelectorAll('.tile[data-tile-id="'+tileId+'"]').forEach(n => {
-          n.textContent = trimmed;
-          fitTextInNode(n);
-        });
-
-        document.querySelectorAll('.tile-inbox[data-tile-id="'+tileId+'"]').forEach(n => {
-          n.textContent = trimmed;
-          fitTextInNode(n);
-        });
-
-        save();
-      }
-
-      function ensureBoxMeta(boxId){
-        if(!state.boxMeta[boxId]){
+      function ensureBoxMeta(boxId) {
+        if (!state.boxMeta[boxId]) {
           state.boxMeta[boxId] = { stop: '', route: '' };
         }
         return state.boxMeta[boxId];
       }
 
-      function buildBoxUI(box){
+      // ========== POINTER EVENTS DRAG SYSTEM ==========
+
+      function wirePointer(el, tileId) {
+        el.onpointerdown = (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+            return;
+          }
+
+          e.preventDefault();
+          startX = e.clientX;
+          startY = e.clientY;
+          dragId = tileId;
+          isDragging = false;
+
+          el.setPointerCapture(e.pointerId);
+
+          el.onpointermove = (m) => {
+            const dx = Math.abs(m.clientX - startX);
+            const dy = Math.abs(m.clientY - startY);
+
+            if (dx > 8 || dy > 8) {
+              if (!isDragging) {
+                isDragging = true;
+                
+                activeClone = el.cloneNode(true);
+                activeClone.className = (el.classList.contains('tile-inbox') ? 'tile-inbox' : 'tile') + ' is-dragging';
+                activeClone.style.width = Math.min(el.offsetWidth, 120) + 'px';
+                activeClone.style.height = Math.min(el.offsetHeight, 50) + 'px';
+                activeClone.style.fontSize = '14px';
+                document.body.appendChild(activeClone);
+                
+                el.style.opacity = '0.3';
+              }
+
+              activeClone.style.left = (m.clientX - 40) + 'px';
+              activeClone.style.top = (m.clientY - 20) + 'px';
+
+              updateDropHighlight(m.clientX, m.clientY);
+            }
+          };
+
+          el.onpointerup = (u) => {
+            el.releasePointerCapture(u.pointerId);
+            el.onpointermove = null;
+            el.onpointerup = null;
+            el.style.opacity = '1';
+
+            clearDropHighlights();
+
+            if (isDragging && activeClone) {
+              const target = document.elementFromPoint(u.clientX, u.clientY);
+              const box = target?.closest('.box');
+              const isBin = target?.closest('#bin');
+
+              removeTileFromAllBoxes(dragId);
+
+              if (isBin) {
+                delete state.tiles[dragId];
+              } else if (box) {
+                placeTileInBox(dragId, box.dataset.box);
+              }
+
+              activeClone.remove();
+              activeClone = null;
+              save();
+              hydrate();
+            }
+
+            isDragging = false;
+            dragId = null;
+          };
+        };
+
+        el.onclick = (e) => {
+          const now = Date.now();
+          if (now - lastTapTime < 350) {
+            editTile(tileId);
+            lastTapTime = 0;
+          } else {
+            lastTapTime = now;
+          }
+        };
+      }
+
+      function updateDropHighlight(x, y) {
+        clearDropHighlights();
+        const target = document.elementFromPoint(x, y);
+        const box = target?.closest('.box');
+        const binEl = target?.closest('#bin');
+        if (box) {
+          box.classList.add('drop-highlight');
+        }
+        if (binEl) {
+          binEl.style.transform = 'scale(1.1)';
+        }
+      }
+
+      function clearDropHighlights() {
+        document.querySelectorAll('.drop-highlight').forEach(el => {
+          el.classList.remove('drop-highlight');
+        });
+        bin.style.transform = '';
+      }
+
+      function removeTileFromAllBoxes(tileId) {
+        for (const boxId of Object.keys(state.placements)) {
+          const arr = state.placements[boxId] || [];
+          const filtered = arr.filter(id => id !== tileId);
+          if (filtered.length === 0) {
+            delete state.placements[boxId];
+          } else {
+            state.placements[boxId] = filtered;
+          }
+        }
+      }
+
+      function placeTileInBox(tileId, boxId) {
+        if (!state.tiles[tileId]) return;
+
+        const box = document.querySelector('.box[data-box="' + boxId + '"]');
+        if (!box) return;
+
+        const cap = Number(box.dataset.cap || '2');
+        const list = state.placements[boxId] ? [...state.placements[boxId]] : [];
+
+        if (list.includes(tileId)) return;
+        if (list.length >= cap) return;
+
+        list.push(tileId);
+        state.placements[boxId] = list.slice(0, cap);
+      }
+
+      function editTile(tileId) {
+        const tile = state.tiles[tileId];
+        if (!tile) return;
+
+        const next = prompt('Edit tile text:', tile.text);
+        if (next === null) return;
+
+        const trimmed = (next || '').trim();
+        if (!trimmed) return;
+
+        state.tiles[tileId].text = trimmed;
+        save();
+        hydrate();
+      }
+
+      // ========== UI BUILDING ==========
+
+      function buildBoxUI(box) {
         const boxId = box.dataset.box;
+        box.innerHTML = '';
 
         const wrap = document.createElement('div');
         wrap.className = 'box-layout';
@@ -605,7 +931,7 @@
         stop.className = 'stop-input';
         stop.type = 'text';
         stop.inputMode = 'numeric';
-        stop.placeholder = '';
+        stop.placeholder = '#';
         stop.setAttribute('aria-label', 'Stop number');
 
         const route = document.createElement('select');
@@ -615,7 +941,7 @@
         ROUTE_OPTIONS.forEach(v => {
           const opt = document.createElement('option');
           opt.value = v;
-          opt.textContent = v === '' ? '' : v;
+          opt.textContent = v === '' ? '—' : v;
           route.appendChild(opt);
         });
 
@@ -624,8 +950,8 @@
         route.value = meta.route || '';
 
         stop.addEventListener('input', () => {
-          const cleaned = stop.value.replace(/[^\d]/g, '').slice(0, 4);
-          if(stop.value !== cleaned) stop.value = cleaned;
+          const cleaned = stop.value.replace(/[^\d]/g, '').slice(0, 3);
+          if (stop.value !== cleaned) stop.value = cleaned;
           ensureBoxMeta(boxId).stop = stop.value;
           save();
         });
@@ -642,7 +968,7 @@
         tileArea.className = 'tile-area one';
         tileArea.dataset.boxId = boxId;
 
-        if(box.dataset.wheels === '1'){
+        if (box.dataset.wheels === '1') {
           const wl = document.createElement('div');
           wl.className = 'wheel-obstruction left';
           const wr = document.createElement('div');
@@ -653,155 +979,88 @@
 
         wrap.appendChild(controls);
         wrap.appendChild(tileArea);
-
         box.appendChild(wrap);
 
         return tileArea;
       }
 
-      function getTileArea(box){
-        const existing = box.querySelector('.tile-area');
-        if(existing) return existing;
-        return buildBoxUI(box);
+      function createTrayTile(tile) {
+        const el = document.createElement('div');
+        el.className = 'tile';
+        el.dataset.tileId = tile.id;
+        el.textContent = tile.text;
+        wirePointer(el, tile.id);
+        tray.appendChild(el);
+        fitTextInNode(el);
       }
 
-      function setTileAreaMode(tileArea, count){
-        tileArea.classList.remove('one','two');
-        tileArea.classList.add(count === 2 ? 'two' : 'one');
+      function createInboxTile(tileId, tileArea) {
+        const tile = state.tiles[tileId];
+        if (!tile) return null;
+
+        const el = document.createElement('div');
+        el.className = 'tile-inbox';
+        el.dataset.tileId = tile.id;
+        el.textContent = tile.text;
+        wirePointer(el, tile.id);
+        tileArea.appendChild(el);
+        fitTextInNode(el);
+        return el;
       }
 
-      function renderBox(boxId){
-        const box = document.querySelector('.box[data-box="'+boxId+'"]');
-        if(!box) return;
+      function hydrate() {
+        tray.innerHTML = '';
+        notesText.value = state.notes || '';
+        introsText.value = state.intros || '';
 
-        const tileArea = getTileArea(box);
+        document.querySelectorAll('.box').forEach(box => {
+          const boxId = box.dataset.box;
+          const tileArea = buildBoxUI(box);
 
-        tileArea.querySelectorAll('.tile-inbox').forEach(n => n.remove());
+          const list = (state.placements[boxId] || []).filter(id => state.tiles[id]).slice(0, 2);
+          state.placements[boxId] = list;
 
-        const list = (state.placements[boxId] || []).filter(id => state.tiles[id]).slice(0,2);
-        state.placements[boxId] = list;
+          tileArea.classList.remove('one', 'two');
+          tileArea.classList.add(list.length === 2 ? 'two' : 'one');
 
-        setTileAreaMode(tileArea, list.length || 1);
-
-        list.forEach(id => {
-          const t = createInboxTile(id);
-          tileArea.appendChild(t);
+          list.forEach(id => createInboxTile(id, tileArea));
         });
 
-        refitTileArea(tileArea);
-      }
+        const placedIds = new Set();
+        Object.values(state.placements).forEach(arr => {
+          (arr || []).forEach(id => placedIds.add(id));
+        });
 
-      function removeTileFromAllBoxes(tileId){
-        let wasRemoved = false;
-
-        for(const boxId of Object.keys(state.placements)){
-          const arr = state.placements[boxId] || [];
-          const next = arr.filter(id => id !== tileId);
-
-          if(next.length !== arr.length){
-            wasRemoved = true;
-
-            if(next.length === 0){
-              delete state.placements[boxId];
-            }else{
-              state.placements[boxId] = next.slice(0,2);
-            }
-
-            renderBox(boxId);
+        for (const tileId of Object.keys(state.tiles)) {
+          if (!placedIds.has(tileId)) {
+            createTrayTile(state.tiles[tileId]);
           }
         }
 
-        if(!wasRemoved) return;
-
-        const stillPlaced = Object.values(state.placements).some(arr => (arr || []).includes(tileId));
-        if(!stillPlaced){
-          ensureTrayTile(tileId);
-        }
+        refitAll();
       }
 
-      function placeTileInBox(tileId, boxId){
-        const box = document.querySelector('.box[data-box="'+boxId+'"]');
-        if(!box) return;
+      // ========== TEXT FITTING ==========
 
-        const cap = Number(box.dataset.cap || '2');
-        const list = state.placements[boxId] ? [...state.placements[boxId]] : [];
+      function fitTextInNode(node) {
+        if (!node || !node.clientWidth) return;
 
-        if(list.includes(tileId)) return;
-        if(list.length >= cap) return;
+        const targetW = Math.max(10, node.clientWidth - 4);
+        const targetH = Math.max(10, node.clientHeight - 4);
 
-        removeTileFromAllBoxes(tileId);
-
-        list.push(tileId);
-        state.placements[boxId] = list.slice(0,2);
-
-        renderBox(boxId);
-
-        removeTrayTile(tileId);
-
-        save();
-      }
-
-      function addTileFromInput(){
-        const text = (input.value || '').trim();
-        if(!text) return;
-        const id = uid();
-        state.tiles[id] = { id, text };
-        createTrayTile(state.tiles[id]);
-        input.value = '';
-        save();
-      }
-
-      function wireDropTargets(){
-        document.querySelectorAll('.box').forEach(box => {
-          box.addEventListener('dragover', (ev) => {
-            ev.preventDefault();
-            ev.dataTransfer.dropEffect = 'move';
-          });
-
-          box.addEventListener('drop', (ev) => {
-            ev.preventDefault();
-            const tileId = ev.dataTransfer.getData('text/plain');
-            if(!tileId || !state.tiles[tileId]) return;
-            placeTileInBox(tileId, box.dataset.box);
-          });
-        });
-
-        tray.addEventListener('dragover', (ev) => {
-          ev.preventDefault();
-          ev.dataTransfer.dropEffect = 'move';
-        });
-
-        tray.addEventListener('drop', (ev) => {
-          ev.preventDefault();
-          const tileId = ev.dataTransfer.getData('text/plain');
-          if(!tileId || !state.tiles[tileId]) return;
-
-          removeTileFromAllBoxes(tileId);
-          ensureTrayTile(tileId);
-          refitAll();
-          save();
-        });
-      }
-
-      function fitTextInNode(node){
-        if(!node) return;
-
-        const targetW = Math.max(10, node.clientWidth - 6);
-        const targetH = Math.max(10, node.clientHeight - 6);
-
-        let lo = 10, hi = 220, best = 14;
+        let lo = 8, hi = 100, best = 12;
 
         const fits = (size) => {
           node.style.fontSize = size + 'px';
           return (node.scrollWidth <= targetW) && (node.scrollHeight <= targetH);
         };
 
-        while(lo <= hi){
+        while (lo <= hi) {
           const mid = Math.floor((lo + hi) / 2);
-          if(fits(mid)){
+          if (fits(mid)) {
             best = mid;
             lo = mid + 1;
-          }else{
+          } else {
             hi = mid - 1;
           }
         }
@@ -809,42 +1068,14 @@
         node.style.fontSize = best + 'px';
       }
 
-      function refitTileArea(tileArea){
-        if(!tileArea) return;
-        tileArea.querySelectorAll('.tile-inbox').forEach(n => fitTextInNode(n));
-      }
-
-      function refitAll(){
+      function refitAll() {
         document.querySelectorAll('.tile-inbox').forEach(n => fitTextInNode(n));
         tray.querySelectorAll('.tile').forEach(n => fitTextInNode(n));
       }
 
-      function hydrate(){
-        tray.innerHTML = '';
+      // ========== PDF EXPORT ==========
 
-        document.querySelectorAll('.box').forEach(b => {
-          b.innerHTML = '';
-          buildBoxUI(b);
-        });
-
-        notesText.value = state.notes || '';
-        introsText.value = state.intros || '';
-
-        const placedIds = new Set();
-        Object.values(state.placements).forEach(arr => (arr || []).forEach(id => placedIds.add(id)));
-
-        for(const tileId of Object.keys(state.tiles)){
-          if(!placedIds.has(tileId)){
-            createTrayTile(state.tiles[tileId]);
-          }
-        }
-
-        Object.keys(state.placements).forEach(renderBox);
-
-        save();
-      }
-
-      async function exportPDFWithOptions(opts){
+      async function exportPDFWithOptions(opts) {
         const area = document.getElementById('printArea');
         const orientation = (opts && opts.orientation) ? opts.orientation : 'portrait';
         const filename = (opts && opts.filename) ? opts.filename : 'half-day-route.pdf';
@@ -852,13 +1083,13 @@
 
         const root = document.documentElement;
 
-        if(boost){
+        if (boost) {
           root.classList.add('pdf-landscape-boost');
           refitAll();
           await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         }
 
-        try{
+        try {
           const scale = Math.min(2, window.devicePixelRatio || 1);
 
           const canvas = await html2canvas(area, {
@@ -892,15 +1123,15 @@
 
           pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
           pdf.save(filename);
-        }finally{
-          if(boost){
+        } finally {
+          if (boost) {
             root.classList.remove('pdf-landscape-boost');
             refitAll();
           }
         }
       }
 
-      async function exportPDF(){
+      async function exportPDF() {
         return exportPDFWithOptions({
           orientation: 'portrait',
           filename: 'half-day-route.pdf',
@@ -908,7 +1139,7 @@
         });
       }
 
-      async function exportPDFLandscape(){
+      async function exportPDFLandscape() {
         return exportPDFWithOptions({
           orientation: 'landscape',
           filename: 'half-day-route-landscape.pdf',
@@ -916,7 +1147,9 @@
         });
       }
 
-      function wireNotes(){
+      // ========== NOTES HANDLING ==========
+
+      function wireNotes() {
         const saveNow = () => {
           state.notes = notesText.value || '';
           state.intros = introsText.value || '';
@@ -925,22 +1158,33 @@
 
         notesText.addEventListener('input', () => {
           clearTimeout(window.__notesTimer);
-          window.__notesTimer = setTimeout(saveNow, 120);
+          window.__notesTimer = setTimeout(saveNow, 150);
         });
 
         introsText.addEventListener('input', () => {
           clearTimeout(window.__introsTimer);
-          window.__introsTimer = setTimeout(saveNow, 120);
+          window.__introsTimer = setTimeout(saveNow, 150);
         });
       }
 
-      addBtn.addEventListener('click', addTileFromInput);
+      // ========== EVENT LISTENERS ==========
+
+      addBtn.addEventListener('click', () => {
+        const text = (input.value || '').trim();
+        if (!text) return;
+        const id = uid();
+        state.tiles[id] = { id, text };
+        input.value = '';
+        save();
+        hydrate();
+      });
+
       input.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') addTileFromInput();
+        if (e.key === 'Enter') addBtn.click();
       });
 
       clearBtn.addEventListener('click', () => {
-        if(confirm('Clear all tiles, placements, stop numbers, route options, and text?')){
+        if (confirm('Clear all tiles, placements, and notes?')) {
           clearAll();
         }
       });
@@ -950,13 +1194,22 @@
 
       window.addEventListener('resize', () => {
         clearTimeout(window.__fitTimer);
-        window.__fitTimer = setTimeout(refitAll, 60);
+        window.__fitTimer = setTimeout(refitAll, 80);
       });
 
-      const ro = new ResizeObserver(() => refitAll());
+      // Orientation change handler
+      window.addEventListener('orientationchange', () => {
+        setTimeout(refitAll, 200);
+      });
+
+      const ro = new ResizeObserver(() => {
+        clearTimeout(window.__roTimer);
+        window.__roTimer = setTimeout(refitAll, 50);
+      });
+
+      // ========== INIT ==========
 
       load();
-      wireDropTargets();
       wireNotes();
       hydrate();
 
@@ -966,6 +1219,5 @@
       refitAll();
     })();
   </script>
-
 </body>
 </html>
