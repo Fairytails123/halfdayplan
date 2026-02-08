@@ -18,21 +18,28 @@
       --success: #2f855a;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
+    * { 
       margin: 0;
       padding: 0;
-      width: 100%;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
       overflow-x: hidden;
     }
 
+    /* ANDROID FIX: Allow default touch actions on body - MUST be auto */
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       background: var(--panel);
       color: #111;
-      touch-action: pan-y;
-      overscroll-behavior: none;
+      min-height: 100vh;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: auto;  /* CRITICAL: Must be auto for Android scroll */
       -webkit-user-select: none;
       user-select: none;
     }
@@ -52,6 +59,7 @@
       padding: 12px;
       display: grid;
       gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .controls {
@@ -66,27 +74,34 @@
       min-width: 0;
       padding: 10px 12px;
       border-radius: 8px;
-      border: 1px solid #c9cdd3;
+      border: 2px solid #e2e8f0;
       font-size: 16px;
       -webkit-user-select: text;
       user-select: text;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.15);
     }
 
     button {
       padding: 10px 12px;
       border-radius: 8px;
-      border: 1px solid #c9cdd3;
+      border: 2px solid transparent;
       background: #fff;
       cursor: pointer;
       font-size: 13px;
       font-weight: bold;
       white-space: nowrap;
+      transition: all 0.2s ease;
     }
 
     button:active { transform: translateY(1px); }
 
-    .btn-pdf { background: var(--success); color: #fff; border: none; }
-    .btn-danger { background: #fed7d7; color: #c53030; border: 1px solid #feb2b2; }
+    .btn-danger { background: #fff5f5; border-color: var(--danger); color: var(--danger); }
 
     .tray-area {
       display: flex;
@@ -106,6 +121,12 @@
       border: 2px dashed #cbd5e0;
       border-radius: 8px;
       background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .tiles-tray.drag-over {
+      border-color: var(--accent);
+      background: #ebf8ff;
     }
 
     #bin {
@@ -115,36 +136,78 @@
       align-items: center;
       justify-content: center;
       background: #fed7d7;
-      border: 2px solid #feb2b2;
+      border: 2px dashed #fc8181;
       border-radius: 8px;
       color: #c53030;
       font-size: 24px;
       flex-shrink: 0;
+      transition: all 0.2s;
     }
 
-    .tile {
+    #bin.drag-over {
+      background: #c53030;
+      border-style: solid;
+      transform: scale(1.05);
+    }
+
+    /* Tiles - touch-action:none enables long-press drag on Android */
+    /* Scrolling works by touching page background, not tiles */
+    .tile, .tile-inbox {
       background: #fff;
-      border: 1px solid #ddd;
       border-radius: 6px;
-      padding: 4px 6px;
-      min-width: 80px;
-      min-height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       cursor: grab;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
-      overflow: hidden;
-      word-break: break-word;
-      line-height: 1.05;
-      touch-action: none;
-      -webkit-user-select: none;
+      touch-action: none;  /* Enables long-press drag on Android */
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       z-index: 100;
+      word-break: break-word;
+      line-height: 1.1;
+      overflow: hidden;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+      font-weight: 500;
+    }
+
+    /* Touch-active state - immediate feedback when touching tile */
+    .tile.touch-active, .tile-inbox.touch-active {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      opacity: 0.9;
+    }
+
+    /* Long-press active state - drag is starting */
+    .tile.long-press-active, .tile-inbox.long-press-active {
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+      opacity: 0.5;
+    }
+
+    /* Hover states - ONLY for mouse devices */
+    @media (hover: hover) and (pointer: fine) {
+      .tile:hover, .tile-inbox:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+    }
+
+    .tile {
+      min-width: 80px;
+      min-height: 38px;
+      padding: 4px 6px;
+      border: 2px solid #e2e8f0;
     }
 
     .tile:active { cursor: grabbing; }
+
+    .tile-inbox {
+      width: 100%;
+      min-height: 32px;
+      padding: 2px 3px;
+      border: 1px solid #e2e8f0;
+      background: linear-gradient(135deg, #fff 0%, #f7fafc 100%);
+    }
 
     .hint {
       font-size: 11px;
@@ -157,6 +220,7 @@
       border-radius: 10px;
       padding: 12px;
       width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .title-centre {
@@ -219,6 +283,12 @@
       position: relative;
       padding: 2px;
       background: #fff;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .box.drag-over {
+      background: #ebf8ff;
+      border-color: var(--accent);
     }
 
     .box-layout {
@@ -286,26 +356,6 @@
     .tile-area.two .tile-inbox {
       width: 100%;
       height: calc(50% - 2px);
-    }
-
-    .tile-inbox {
-      background: #fff;
-      border: none;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      overflow: hidden;
-      padding: 2px 3px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
-      word-break: break-word;
-      line-height: 1.05;
-      cursor: grab;
-      touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
-      z-index: 100;
     }
 
     .wheel-obstruction {
@@ -396,190 +446,76 @@
       grid-template-columns: 1fr;
     }
 
-    /* Drag clone styling */
+    /* Drag clone — NO transform scale/rotate (causes visual jump) */
     .is-dragging {
       position: fixed;
       z-index: 9999 !important;
       pointer-events: none;
-      opacity: 0.9;
-      transform: scale(1.08);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      border: 2px solid var(--accent);
-    }
-
-    /* Drop target highlight */
-    .drop-highlight {
-      background: #ebf8ff !important;
-      box-shadow: inset 0 0 0 2px var(--accent);
+      opacity: 0.85;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+      touch-action: none;
+      /* No transform - it causes visual position shift */
     }
 
     /* ============ RESPONSIVE BREAKPOINTS ============ */
 
-    /* Tablet and below - stack van sections */
     @media (max-width: 768px) {
       .two-cols { 
         grid-template-columns: 1fr; 
         gap: 14px;
       }
-      
       .dv-wrap { 
         grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
-      
       .dv-wrap .section:nth-child(2) {
         grid-column: 1 / -1;
         order: -1;
       }
-      
-      .box {
-        min-height: 70px;
-      }
-      
-      .card-title {
-        font-size: 14px;
-      }
+      .box { min-height: 70px; }
+      .card-title { font-size: 14px; }
     }
 
-    /* Mobile portrait - more compact */
     @media (max-width: 500px) {
-      .page {
-        padding: 8px;
-        gap: 8px;
-      }
-      
-      .topbar {
-        padding: 10px;
-        gap: 8px;
-      }
-      
-      .controls {
-        gap: 6px;
-      }
-      
-      .controls input[type="text"] {
-        flex: 1 1 100%;
-        font-size: 16px;
-      }
-      
+      .page { padding: 8px; gap: 8px; }
+      .topbar { padding: 10px; gap: 8px; }
+      .controls { gap: 6px; }
+      .controls input[type="text"] { flex: 1 1 100%; font-size: 16px; }
       .controls button {
         flex: 1;
         min-width: calc(50% - 4px);
         padding: 10px 8px;
         font-size: 12px;
       }
-      
-      .dv-wrap {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      
-      .dv-wrap .section:nth-child(2) {
-        order: 0;
-      }
-      
-      .box {
-        min-height: 65px;
-      }
-      
-      .box-layout {
-        grid-template-rows: 20px 1fr;
-        gap: 3px;
-        padding: 2px;
-      }
-      
-      .stop-input {
-        width: 32px;
-        min-width: 32px;
-        height: 18px;
-        font-size: 10px;
-      }
-      
-      .route-select {
-        height: 18px;
-        font-size: 9px;
-      }
-      
-      .tile {
-        min-width: 70px;
-        min-height: 34px;
-      }
-      
-      .title-centre {
-        font-size: 15px;
-      }
-      
-      .section-head .label {
-        font-size: 12px;
-      }
-      
-      #bin {
-        width: 44px;
-        min-width: 44px;
-        font-size: 20px;
-      }
-      
-      .wheel-obstruction {
-        width: 26px;
-        height: 16px;
-        bottom: 2px;
-      }
-      
+      .dv-wrap { grid-template-columns: 1fr; gap: 10px; }
+      .dv-wrap .section:nth-child(2) { order: 0; }
+      .box { min-height: 65px; }
+      .box-layout { grid-template-rows: 20px 1fr; gap: 3px; padding: 2px; }
+      .stop-input { width: 32px; min-width: 32px; height: 18px; font-size: 10px; }
+      .route-select { height: 18px; font-size: 9px; }
+      .tile { min-width: 70px; min-height: 34px; }
+      .title-centre { font-size: 15px; }
+      .section-head .label { font-size: 12px; }
+      #bin { width: 44px; min-width: 44px; font-size: 20px; }
+      .wheel-obstruction { width: 26px; height: 16px; bottom: 2px; }
       .wheel-obstruction.left { left: 3px; }
       .wheel-obstruction.right { right: 3px; }
-      
-      .avoid-wheels .tile-area {
-        padding-bottom: 22px;
-      }
+      .avoid-wheels .tile-area { padding-bottom: 22px; }
     }
 
-    /* Very small screens */
     @media (max-width: 360px) {
-      .sv-cabin .row.top, .sv-back .row.top { 
-        grid-template-columns: repeat(3, 1fr); 
-      }
-      
-      .box {
-        min-height: 60px;
-      }
-      
-      .route-select {
-        font-size: 8px;
-      }
+      .sv-cabin .row.top, .sv-back .row.top { grid-template-columns: repeat(3, 1fr); }
+      .box { min-height: 60px; }
+      .route-select { font-size: 8px; }
     }
 
-    /* Landscape phone */
     @media (max-height: 500px) and (orientation: landscape) {
-      .two-cols {
-        grid-template-columns: 1fr 1fr;
-      }
-      
-      .dv-wrap {
-        grid-template-columns: 1fr 2fr 1fr;
-      }
-      
-      .dv-wrap .section:nth-child(2) {
-        order: 0;
-        grid-column: auto;
-      }
-      
-      .box {
-        min-height: 60px;
-      }
-      
-      .notes-area {
-        grid-template-columns: 1fr 1fr;
-      }
-      
-      textarea {
-        min-height: 70px;
-      }
-    }
-
-    /* PDF export boost */
-    .pdf-landscape-boost #printArea {
-      transform: scale(1.12);
-      transform-origin: top left;
+      .two-cols { grid-template-columns: 1fr 1fr; }
+      .dv-wrap { grid-template-columns: 1fr 2fr 1fr; }
+      .dv-wrap .section:nth-child(2) { order: 0; grid-column: auto; }
+      .box { min-height: 60px; }
+      .notes-area { grid-template-columns: 1fr 1fr; }
+      textarea { min-height: 70px; }
     }
   </style>
 </head>
@@ -591,8 +527,6 @@
         <input id="tileText" type="text" placeholder="Dog name..." />
         <button id="addTileBtn" type="button">Add Dog</button>
         <button id="clearBtn" class="btn-danger" type="button">Clear All</button>
-        <button id="pdfBtn" class="btn-pdf" type="button">PDF</button>
-        <button id="pdfLandscapeBtn" class="btn-pdf" type="button">PDF Land.</button>
       </div>
       <div class="tray-area">
         <div class="tiles-tray" id="tray" aria-label="Tiles tray"></div>
@@ -688,9 +622,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
   <script>
     (function(){
       const tray = document.getElementById('tray');
@@ -698,22 +629,11 @@
       const input = document.getElementById('tileText');
       const addBtn = document.getElementById('addTileBtn');
       const clearBtn = document.getElementById('clearBtn');
-      const pdfBtn = document.getElementById('pdfBtn');
-      const pdfLandscapeBtn = document.getElementById('pdfLandscapeBtn');
       const notesText = document.getElementById('notesText');
       const introsText = document.getElementById('introsText');
 
       const STORAGE_KEY = 'half_day_route_v3';
-
-      const ROUTE_OPTIONS = [
-        '',
-        'S2H',
-        'H2S',
-        'D2S',
-        'S2S',
-        'PU',
-        'DO'
-      ];
+      const ROUTE_OPTIONS = ['', 'S2H', 'H2S', 'D2S', 'S2S', 'PU', 'DO'];
 
       const state = {
         tiles: {},
@@ -723,15 +643,12 @@
         intros: ''
       };
 
-      // Drag state
-      let activeClone = null;
-      let dragId = null;
-      let startX = 0;
-      let startY = 0;
-      let isDragging = false;
-      let lastTapTime = 0;
+      // ==================== PLATFORM DETECTION ====================
+      const isAndroid = /Android/i.test(navigator.userAgent);
 
-      const uid = () => 't_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      const uid = () => 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+      // ==================== PERSISTENCE ====================
 
       function save() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -768,109 +685,372 @@
         return state.boxMeta[boxId];
       }
 
-      // ========== POINTER EVENTS DRAG SYSTEM ==========
+      // ==================== DRAG & DROP STATE ====================
+      let isDragging = false;
+      let activeClone = null;
+      let currentDragTile = null;
+      let dragId = null;
+      let startX = 0;
+      let startY = 0;
+      let lastTapTime = 0;
+      let lastTapTileId = null;
 
-      function wirePointer(el, tileId) {
-        el.onpointerdown = (e) => {
-          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-            return;
+      const MOVE_THRESHOLD = 10;
+
+      // ==================== ANDROID TOUCH HANDLING ====================
+      // PATTERN FROM WORKING VAN MANAGER:
+      // 1. Single touchstart listener on document (passive: true)
+      // 2. Passive touchmove (checkTouchScroll) to detect scrolling
+      // 3. Non-passive touchmove ONLY during active drag
+      // 4. NO body class changes (causes reflow/scroll jump)
+
+      let touchStartPos = null;
+      let dragSourceElement = null;
+      let pendingDragInfo = null;
+      let boundTouchMove = null;
+      let boundTouchEnd = null;
+      let longPressTimer = null;
+
+      // Tuned settings from working reference
+      const LONG_PRESS_DURATION = 180;
+      const SCROLL_THRESHOLD = 10;
+
+      // Store touch offset for smooth drag positioning
+      let touchOffsetX = 0;
+      let touchOffsetY = 0;
+
+      // Handle touch start - DOCUMENT LEVEL
+      function handleTouchStart(e) {
+        if (e.touches.length !== 1) return; // Single touch only
+
+        const touch = e.touches[0];
+        // Find tile directly (entire tile is draggable)
+        const tile = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.tile, .tile-inbox');
+        if (!tile) return;
+
+        // Get tile ID from data attribute
+        const tid = tile.getAttribute('data-tile-id');
+        if (!tid || !state.tiles[tid]) return;
+
+        // Clean up any existing listeners first (prevents stacking)
+        document.removeEventListener('touchmove', checkTouchScroll);
+        document.removeEventListener('touchend', cancelTouchDrag);
+        document.removeEventListener('touchcancel', cancelTouchDrag);
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+
+        // Calculate offset from touch point to tile top-left (for smooth positioning)
+        const tileRect = tile.getBoundingClientRect();
+        touchOffsetX = touch.clientX - tileRect.left;
+        touchOffsetY = touch.clientY - tileRect.top;
+
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+        dragSourceElement = tile;
+        pendingDragInfo = {
+          tile: tile,
+          tid: tid,
+          coords: { x: touch.clientX, y: touch.clientY },
+          // CRITICAL: Store scroll position NOW before any changes
+          scrollX: window.scrollX,
+          scrollY: window.scrollY,
+          // Store tile's viewport position for accurate clone placement
+          tileRect: tileRect
+        };
+
+        // Immediate visual feedback
+        tile.classList.add('touch-active');
+
+        // Start long-press timer
+        longPressTimer = setTimeout(() => {
+          if (pendingDragInfo && touchStartPos) {
+            startDragTouch(pendingDragInfo);
+          }
+        }, LONG_PRESS_DURATION);
+
+        // Listen for movement/cancel (passive to allow scroll initially)
+        document.addEventListener('touchmove', checkTouchScroll, { passive: true });
+        document.addEventListener('touchend', cancelTouchDrag);
+        document.addEventListener('touchcancel', cancelTouchDrag);
+      }
+
+      // Check if user is scrolling (passive - doesn't block scroll)
+      function checkTouchScroll(e) {
+        if (!touchStartPos || isDragging) return;
+
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - touchStartPos.x);
+        const dy = Math.abs(touch.clientY - touchStartPos.y);
+
+        // If moved too much before timer, it's a scroll - cancel drag
+        if (dx > SCROLL_THRESHOLD || dy > SCROLL_THRESHOLD) {
+          cancelTouchDrag();
+        }
+      }
+
+      // Cancel drag attempt (user scrolled or lifted finger)
+      function cancelTouchDrag() {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+
+        // Remove visual feedback
+        if (dragSourceElement) {
+          dragSourceElement.classList.remove('touch-active');
+        }
+
+        touchStartPos = null;
+        pendingDragInfo = null;
+        dragSourceElement = null;
+
+        document.removeEventListener('touchmove', checkTouchScroll);
+        document.removeEventListener('touchend', cancelTouchDrag);
+        document.removeEventListener('touchcancel', cancelTouchDrag);
+      }
+
+      // Start actual drag (long-press completed)
+      function startDragTouch(dragInfo) {
+        // Remove the scroll-checking listeners
+        document.removeEventListener('touchmove', checkTouchScroll);
+        document.removeEventListener('touchend', cancelTouchDrag);
+        document.removeEventListener('touchcancel', cancelTouchDrag);
+
+        // Get stored scroll position from touchstart
+        const savedScrollX = dragInfo.scrollX;
+        const savedScrollY = dragInfo.scrollY;
+
+        // Now we're dragging
+        isDragging = true;
+        dragId = dragInfo.tid;
+        currentDragTile = dragInfo.tile;
+
+        // NO body class change - even empty class can trigger reflow
+
+        // Haptic feedback
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+
+        // Visual feedback - transition from touch-active to long-press-active
+        if (dragSourceElement) {
+          dragSourceElement.classList.remove('touch-active');
+          dragSourceElement.classList.add('long-press-active');
+        }
+
+        // Create clone - position at tile's current visual position
+        // Use stored tileRect for consistent positioning
+        createDragClone(dragInfo.tile, dragInfo.tileRect.left, dragInfo.tileRect.top);
+
+        // CRITICAL: Restore scroll position immediately and after render
+        window.scrollTo(savedScrollX, savedScrollY);
+        requestAnimationFrame(() => {
+          window.scrollTo(savedScrollX, savedScrollY);
+        });
+
+        // CRITICAL: Add NON-PASSIVE touchmove listener to block scrolling
+        boundTouchMove = handleDragTouchMove;
+        boundTouchEnd = handleDragTouchEnd;
+        document.addEventListener('touchmove', boundTouchMove, { passive: false });
+        document.addEventListener('touchend', boundTouchEnd);
+        document.addEventListener('touchcancel', boundTouchEnd);
+      }
+
+      // Handle touch move DURING DRAG (non-passive)
+      function handleDragTouchMove(e) {
+        if (!isDragging) return;
+
+        // CRITICAL: Prevent default to STOP scrolling
+        e.preventDefault();
+
+        const touch = e.touches[0];
+
+        if (activeClone) {
+          // Position clone relative to finger using saved offset
+          activeClone.style.left = (touch.clientX - touchOffsetX) + 'px';
+          activeClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+        }
+
+        // Update drag-over states
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target) {
+          const box = target.closest('.box');
+          const binEl = target.closest('#bin');
+          const trayEl = target.closest('#tray');
+          if (box) box.classList.add('drag-over');
+          if (binEl) binEl.classList.add('drag-over');
+          if (trayEl) trayEl.classList.add('drag-over');
+        }
+      }
+
+      // Handle touch end DURING DRAG
+      function handleDragTouchEnd(e) {
+        // Remove listeners
+        document.removeEventListener('touchmove', boundTouchMove);
+        document.removeEventListener('touchend', boundTouchEnd);
+        document.removeEventListener('touchcancel', boundTouchEnd);
+
+        // Get final position
+        const touch = e.changedTouches[0];
+        finishDrag(touch.clientX, touch.clientY);
+      }
+
+      // Setup Android touch events - DOCUMENT LEVEL
+      if (isAndroid) {
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+      }
+
+      // ==================== HELPER FUNCTIONS ====================
+
+      function createDragClone(tile, tileLeft, tileTop) {
+        activeClone = tile.cloneNode(true);
+        activeClone.classList.add('is-dragging');
+        activeClone.classList.remove('touch-active', 'long-press-active');
+        activeClone.style.width = Math.max(tile.offsetWidth, 80) + 'px';
+        activeClone.style.height = Math.max(tile.offsetHeight, 38) + 'px';
+        // Position clone exactly where tile is (using stored tileRect position)
+        activeClone.style.left = tileLeft + 'px';
+        activeClone.style.top = tileTop + 'px';
+        document.body.appendChild(activeClone);
+        tile.style.opacity = '0.3';
+      }
+
+      function finishDrag(clientX, clientY) {
+        isDragging = false;
+
+        // Clean up visual feedback
+        if (dragSourceElement) {
+          dragSourceElement.classList.remove('touch-active', 'long-press-active');
+          dragSourceElement.style.opacity = '1';
+        }
+        if (currentDragTile) {
+          currentDragTile.style.opacity = '1';
+        }
+
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+        if (activeClone && dragId) {
+          const target = document.elementFromPoint(clientX, clientY);
+          const box = target?.closest('.box');
+          const isBin = target?.closest('#bin');
+
+          // Remove from all placements
+          removeTileFromAllBoxes(dragId);
+
+          if (isBin) {
+            delete state.tiles[dragId];
+          } else if (box) {
+            placeTileInBox(dragId, box.dataset.box);
           }
 
-          e.preventDefault();
+          activeClone.remove();
+          activeClone = null;
+          save();
+          hydrate();
+        }
+
+        // Reset all drag state
+        currentDragTile = null;
+        dragSourceElement = null;
+        pendingDragInfo = null;
+        touchStartPos = null;
+        dragId = null;
+      }
+
+      function cancelDrag() {
+        isDragging = false;
+
+        if (dragSourceElement) {
+          dragSourceElement.classList.remove('touch-active', 'long-press-active');
+          dragSourceElement.style.opacity = '1';
+        }
+        if (currentDragTile) {
+          currentDragTile.style.opacity = '1';
+        }
+
+        if (activeClone) {
+          activeClone.remove();
+          activeClone = null;
+        }
+
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+        currentDragTile = null;
+        dragSourceElement = null;
+        pendingDragInfo = null;
+        touchStartPos = null;
+        dragId = null;
+      }
+
+      // ==================== WINDOWS/DESKTOP: Pointer events on WHOLE TILE ====================
+
+      function wirePointerEvents(tile, tid) {
+        // Set touch-action: none on tile for pointer capture to work
+        tile.style.touchAction = 'none';
+
+        tile.onpointerdown = function(e) {
+          if (e.button !== 0) return;
+
           startX = e.clientX;
           startY = e.clientY;
-          dragId = tileId;
-          isDragging = false;
+          dragId = tid;
+          currentDragTile = tile;
 
-          el.setPointerCapture(e.pointerId);
+          // Calculate offset for smooth positioning
+          const tileRect = tile.getBoundingClientRect();
+          touchOffsetX = e.clientX - tileRect.left;
+          touchOffsetY = e.clientY - tileRect.top;
 
-          el.onpointermove = (m) => {
-            const dx = Math.abs(m.clientX - startX);
-            const dy = Math.abs(m.clientY - startY);
+          tile.setPointerCapture(e.pointerId);
 
-            if (dx > 8 || dy > 8) {
-              if (!isDragging) {
+          tile.onpointermove = function(m) {
+            const dist = Math.abs(m.clientX - startX) + Math.abs(m.clientY - startY);
+            if (dist > MOVE_THRESHOLD) {
+              if (!activeClone) {
                 isDragging = true;
-                
-                activeClone = el.cloneNode(true);
-                activeClone.className = (el.classList.contains('tile-inbox') ? 'tile-inbox' : 'tile') + ' is-dragging';
-                activeClone.style.width = Math.min(el.offsetWidth, 120) + 'px';
-                activeClone.style.height = Math.min(el.offsetHeight, 50) + 'px';
-                activeClone.style.fontSize = '14px';
-                document.body.appendChild(activeClone);
-                
-                el.style.opacity = '0.3';
+                const currentRect = tile.getBoundingClientRect();
+                createDragClone(tile, currentRect.left, currentRect.top);
               }
+              // Move clone with finger using offset
+              activeClone.style.left = (m.clientX - touchOffsetX) + 'px';
+              activeClone.style.top = (m.clientY - touchOffsetY) + 'px';
 
-              activeClone.style.left = (m.clientX - 40) + 'px';
-              activeClone.style.top = (m.clientY - 20) + 'px';
-
-              updateDropHighlight(m.clientX, m.clientY);
+              // Update drag-over states
+              document.querySelectorAll('.drag-over').forEach(elem => elem.classList.remove('drag-over'));
+              const target = document.elementFromPoint(m.clientX, m.clientY);
+              if (target) {
+                const box = target.closest('.box');
+                const binEl = target.closest('#bin');
+                const trayEl = target.closest('#tray');
+                if (box) box.classList.add('drag-over');
+                if (binEl) binEl.classList.add('drag-over');
+                if (trayEl) trayEl.classList.add('drag-over');
+              }
             }
           };
 
-          el.onpointerup = (u) => {
-            el.releasePointerCapture(u.pointerId);
-            el.onpointermove = null;
-            el.onpointerup = null;
-            el.style.opacity = '1';
+          tile.onpointerup = function(u) {
+            tile.releasePointerCapture(u.pointerId);
+            tile.onpointermove = null;
+            tile.onpointerup = null;
 
-            clearDropHighlights();
-
-            if (isDragging && activeClone) {
-              const target = document.elementFromPoint(u.clientX, u.clientY);
-              const box = target?.closest('.box');
-              const isBin = target?.closest('#bin');
-
-              removeTileFromAllBoxes(dragId);
-
-              if (isBin) {
-                delete state.tiles[dragId];
-              } else if (box) {
-                placeTileInBox(dragId, box.dataset.box);
-              }
-
-              activeClone.remove();
-              activeClone = null;
-              save();
-              hydrate();
+            if (isDragging) {
+              finishDrag(u.clientX, u.clientY);
+            } else {
+              tile.style.opacity = '1';
+              currentDragTile = null;
             }
+          };
 
-            isDragging = false;
-            dragId = null;
+          tile.onpointercancel = function() {
+            cancelDrag();
           };
         };
-
-        el.onclick = (e) => {
-          const now = Date.now();
-          if (now - lastTapTime < 350) {
-            editTile(tileId);
-            lastTapTime = 0;
-          } else {
-            lastTapTime = now;
-          }
-        };
       }
 
-      function updateDropHighlight(x, y) {
-        clearDropHighlights();
-        const target = document.elementFromPoint(x, y);
-        const box = target?.closest('.box');
-        const binEl = target?.closest('#bin');
-        if (box) {
-          box.classList.add('drop-highlight');
-        }
-        if (binEl) {
-          binEl.style.transform = 'scale(1.1)';
-        }
-      }
-
-      function clearDropHighlights() {
-        document.querySelectorAll('.drop-highlight').forEach(el => {
-          el.classList.remove('drop-highlight');
-        });
-        bin.style.transform = '';
-      }
+      // ==================== TILE PLACEMENT ====================
 
       function removeTileFromAllBoxes(tileId) {
         for (const boxId of Object.keys(state.placements)) {
@@ -886,16 +1066,12 @@
 
       function placeTileInBox(tileId, boxId) {
         if (!state.tiles[tileId]) return;
-
         const box = document.querySelector('.box[data-box="' + boxId + '"]');
         if (!box) return;
-
         const cap = Number(box.dataset.cap || '2');
         const list = state.placements[boxId] ? [...state.placements[boxId]] : [];
-
         if (list.includes(tileId)) return;
         if (list.length >= cap) return;
-
         list.push(tileId);
         state.placements[boxId] = list.slice(0, cap);
       }
@@ -903,19 +1079,16 @@
       function editTile(tileId) {
         const tile = state.tiles[tileId];
         if (!tile) return;
-
         const next = prompt('Edit tile text:', tile.text);
         if (next === null) return;
-
         const trimmed = (next || '').trim();
         if (!trimmed) return;
-
         state.tiles[tileId].text = trimmed;
         save();
         hydrate();
       }
 
-      // ========== UI BUILDING ==========
+      // ==================== UI BUILDING ====================
 
       function buildBoxUI(box) {
         const boxId = box.dataset.box;
@@ -984,27 +1157,42 @@
         return tileArea;
       }
 
+      // ==================== CREATE TILE (Full tile draggable) ====================
+
+      function createTileElement(tid, className) {
+        const tile = document.createElement('div');
+        tile.className = className;
+        tile.textContent = state.tiles[tid].text;
+
+        if (isAndroid) {
+          // ANDROID: Mark tile as draggable (whole tile via long-press)
+          tile.setAttribute('data-tile-id', tid);
+          // Touch events handled at document level
+        } else {
+          // WINDOWS/DESKTOP: Pointer events on whole tile
+          wirePointerEvents(tile, tid);
+        }
+
+        // Double-tap/click to edit
+        tile.ondblclick = function() {
+          editTile(tid);
+        };
+
+        return tile;
+      }
+
       function createTrayTile(tile) {
-        const el = document.createElement('div');
-        el.className = 'tile';
-        el.dataset.tileId = tile.id;
-        el.textContent = tile.text;
-        wirePointer(el, tile.id);
+        const el = createTileElement(tile.id, 'tile');
         tray.appendChild(el);
-        fitTextInNode(el);
+        requestAnimationFrame(() => fitText(el));
       }
 
       function createInboxTile(tileId, tileArea) {
         const tile = state.tiles[tileId];
         if (!tile) return null;
-
-        const el = document.createElement('div');
-        el.className = 'tile-inbox';
-        el.dataset.tileId = tile.id;
-        el.textContent = tile.text;
-        wirePointer(el, tile.id);
+        const el = createTileElement(tileId, 'tile-inbox');
         tileArea.appendChild(el);
-        fitTextInNode(el);
+        requestAnimationFrame(() => fitText(el));
         return el;
       }
 
@@ -1036,118 +1224,34 @@
             createTrayTile(state.tiles[tileId]);
           }
         }
-
-        refitAll();
       }
 
-      // ========== TEXT FITTING ==========
+      // ==================== TEXT FITTING ====================
 
-      function fitTextInNode(node) {
-        if (!node || !node.clientWidth) return;
-
-        const targetW = Math.max(10, node.clientWidth - 4);
-        const targetH = Math.max(10, node.clientHeight - 4);
+      function fitText(node) {
+        if (!node || !node.clientWidth || !node.clientHeight) return;
 
         let lo = 8, hi = 100, best = 12;
 
-        const fits = (size) => {
-          node.style.fontSize = size + 'px';
-          return (node.scrollWidth <= targetW) && (node.scrollHeight <= targetH);
-        };
-
         while (lo <= hi) {
           const mid = Math.floor((lo + hi) / 2);
-          if (fits(mid)) {
+          node.style.fontSize = mid + 'px';
+
+          if (node.scrollWidth <= (node.clientWidth - 6) && node.scrollHeight <= (node.clientHeight - 4)) {
             best = mid;
             lo = mid + 1;
           } else {
             hi = mid - 1;
           }
         }
-
         node.style.fontSize = best + 'px';
       }
 
       function refitAll() {
-        document.querySelectorAll('.tile-inbox').forEach(n => fitTextInNode(n));
-        tray.querySelectorAll('.tile').forEach(n => fitTextInNode(n));
+        document.querySelectorAll('.tile, .tile-inbox').forEach(n => fitText(n));
       }
 
-      // ========== PDF EXPORT ==========
-
-      async function exportPDFWithOptions(opts) {
-        const area = document.getElementById('printArea');
-        const orientation = (opts && opts.orientation) ? opts.orientation : 'portrait';
-        const filename = (opts && opts.filename) ? opts.filename : 'half-day-route.pdf';
-        const boost = !!(opts && opts.boost);
-
-        const root = document.documentElement;
-
-        if (boost) {
-          root.classList.add('pdf-landscape-boost');
-          refitAll();
-          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        }
-
-        try {
-          const scale = Math.min(2, window.devicePixelRatio || 1);
-
-          const canvas = await html2canvas(area, {
-            backgroundColor: '#ffffff',
-            scale,
-            useCORS: true
-          });
-
-          const imgData = canvas.toDataURL('image/png');
-          const { jsPDF } = window.jspdf;
-
-          const pdf = new jsPDF({
-            orientation,
-            unit: 'pt',
-            format: 'a4'
-          });
-
-          const pageW = pdf.internal.pageSize.getWidth();
-          const pageH = pdf.internal.pageSize.getHeight();
-
-          const imgW = canvas.width;
-          const imgH = canvas.height;
-
-          const ratio = Math.min(pageW / imgW, pageH / imgH);
-
-          const renderW = imgW * ratio;
-          const renderH = imgH * ratio;
-
-          const x = (pageW - renderW) / 2;
-          const y = (pageH - renderH) / 2;
-
-          pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
-          pdf.save(filename);
-        } finally {
-          if (boost) {
-            root.classList.remove('pdf-landscape-boost');
-            refitAll();
-          }
-        }
-      }
-
-      async function exportPDF() {
-        return exportPDFWithOptions({
-          orientation: 'portrait',
-          filename: 'half-day-route.pdf',
-          boost: false
-        });
-      }
-
-      async function exportPDFLandscape() {
-        return exportPDFWithOptions({
-          orientation: 'landscape',
-          filename: 'half-day-route-landscape.pdf',
-          boost: true
-        });
-      }
-
-      // ========== NOTES HANDLING ==========
+      // ==================== NOTES HANDLING ====================
 
       function wireNotes() {
         const saveNow = () => {
@@ -1167,7 +1271,7 @@
         });
       }
 
-      // ========== EVENT LISTENERS ==========
+      // ==================== EVENT LISTENERS ====================
 
       addBtn.addEventListener('click', () => {
         const text = (input.value || '').trim();
@@ -1189,15 +1293,18 @@
         }
       });
 
-      pdfBtn.addEventListener('click', exportPDF);
-      pdfLandscapeBtn.addEventListener('click', exportPDFLandscape);
+      // Escape key to cancel drag
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && activeClone) {
+          cancelDrag();
+        }
+      });
 
       window.addEventListener('resize', () => {
         clearTimeout(window.__fitTimer);
         window.__fitTimer = setTimeout(refitAll, 80);
       });
 
-      // Orientation change handler
       window.addEventListener('orientationchange', () => {
         setTimeout(refitAll, 200);
       });
@@ -1207,7 +1314,7 @@
         window.__roTimer = setTimeout(refitAll, 50);
       });
 
-      // ========== INIT ==========
+      // ==================== INIT ====================
 
       load();
       wireNotes();
@@ -1216,7 +1323,20 @@
       document.querySelectorAll('.box').forEach(b => ro.observe(b));
       ro.observe(tray);
 
-      refitAll();
+      // Debug logging
+      console.log('=== Half Day Route ===');
+      console.log('User Agent:', navigator.userAgent);
+      console.log('isAndroid:', isAndroid);
+      if (isAndroid) {
+        console.log('Mode: ANDROID - Full tile long-press drag');
+        console.log('- Long-press tile for 180ms to start drag');
+        console.log('- No body class changes (prevents reflow)');
+        console.log('- Scroll position stored at touchstart, restored after clone');
+      } else {
+        console.log('Mode: WINDOWS/DESKTOP - Pointer events on whole tile');
+        console.log('- Drag: Touch/click anywhere on tile');
+      }
+
     })();
   </script>
 </body>
